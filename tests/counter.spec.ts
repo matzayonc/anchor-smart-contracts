@@ -4,13 +4,13 @@ import * as anchor from '@project-serum/anchor';
 describe('counter', () => {
 
   anchor.setProvider(anchor.Provider.env());
-  const program = anchor.workspace.Basic;
+  const program = anchor.workspace.Counter;
   const myAccount = anchor.web3.Keypair.generate();
 
   it('Initialization', async () => {
-    await program.rpc.initialize(new anchor.BN(42), {
+    await program.rpc.initialize({
       accounts: {
-        user: myAccount.publicKey,
+        owner: myAccount.publicKey,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       },
       signers: [myAccount],
@@ -20,9 +20,9 @@ describe('counter', () => {
 
 
   it('Update', async () => {
-    await program.rpc.update(new anchor.BN(44), {
+    await program.rpc.update({
       accounts: {
-        user: myAccount.publicKey
+        owner: myAccount.publicKey
       }
     });
   });

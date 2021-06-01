@@ -4,15 +4,15 @@ use anchor_lang::prelude::*;
 mod counter {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>, data: u64) -> ProgramResult {
-        let user = &mut ctx.accounts.user;
-        user.tokens = data;
+    pub fn initialize(ctx: Context<Initialize>,) -> ProgramResult {
+        let owner = &mut ctx.accounts.owner;
+        owner.amount = 0;
         Ok(())
     }
 
-    pub fn update(ctx: Context<Update>, data: u64) -> ProgramResult {
-        let user = &mut ctx.accounts.user;
-        user.tokens = data;
+    pub fn update(ctx: Context<Update>) -> ProgramResult {
+        let owner = &mut ctx.accounts.owner;
+        owner.amount += 1;
         Ok(())
     }
 }
@@ -20,17 +20,17 @@ mod counter {
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(init)]
-    pub user: ProgramAccount<'info, MyAccount>,
+    pub owner: ProgramAccount<'info, MyAccount>,
     pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
 pub struct Update<'info> {
     #[account(mut)]
-    pub user: ProgramAccount<'info, MyAccount>,
+    pub owner: ProgramAccount<'info, MyAccount>,
 }
 
 #[account]
 pub struct MyAccount {
-    pub tokens: u64,
+    pub amount: u64,
 }
