@@ -4,7 +4,7 @@ import * as anchor from '@project-serum/anchor';
 describe('basic', () => {
 
   anchor.setProvider(anchor.Provider.env());
-  const program = anchor.workspace.Basic;
+  const program = anchor.workspace.Manager;
   const myAccount = anchor.web3.Keypair.generate();
 
   it('Initialization', async () => {

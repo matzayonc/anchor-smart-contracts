@@ -6,7 +6,7 @@ describe('counter', () => {
   anchor.setProvider(anchor.Provider.env());
   const program = anchor.workspace.Counter;
   const myAccount = anchor.web3.Keypair.generate();
-
+/*
   it('Initialization', async () => {
     await program.rpc.initialize({
       accounts: {
@@ -25,5 +25,5 @@ describe('counter', () => {
         owner: myAccount.publicKey
       }
     });
-  });
+  });*/
 });
