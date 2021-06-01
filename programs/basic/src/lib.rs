@@ -20,17 +20,17 @@ mod basic {
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(init)]
-    pub user: ProgramAccount<'info, User>,
+    pub user: ProgramAccount<'info, MyAccount>,
     pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
 pub struct Update<'info> {
     #[account(mut)]
-    pub user: ProgramAccount<'info, User>,
+    pub user: ProgramAccount<'info, MyAccount>,
 }
 
 #[account]
-pub struct User {
+pub struct MyAccount {
     pub tokens: u64,
 }
