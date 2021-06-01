@@ -1,8 +1,0 @@
-Streaming transaction logs mentioning 8oEd3DRpo8K6mZaanAR9du4xmMah2xLEpMXh5vCyZ5vd. Confirmed commitment
-Transaction executed in slot 3:
-  Signature: 279WJriCJV2Uj7Hnot23Ls3qEawPm8u9zCzNDhwC61o8T6sbWGZrcdAuEsHeLqRGntKWPC784nbYWzT9bEkW2DUd
-  Status: Ok
-  Log Messages:
-    Program 8oEd3DRpo8K6mZaanAR9du4xmMah2xLEpMXh5vCyZ5vd invoke [1]
-    Program 8oEd3DRpo8K6mZaanAR9du4xmMah2xLEpMXh5vCyZ5vd consumed 410 of 200000 compute units
-    Program 8oEd3DRpo8K6mZaanAR9du4xmMah2xLEpMXh5vCyZ5vd success
