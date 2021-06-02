@@ -41,6 +41,10 @@ mod manager {
         Ok(())
     }
 
+    pub fn create_mint(ctx: Context<CreateMint>) -> ProgramResult {
+        ctx.accounts.mint.supply = 0;
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -55,6 +59,19 @@ pub struct UpdateWallet<'info> {
     #[account(mut)]
     pub user: ProgramAccount<'info, MyAccount>,
 }
+
+#[derive(Accounts)]
+pub struct CreateMint<'info> {
+    #[account(init)]
+    mint: ProgramAccount<'info, Mint>,
+    rent: Sysvar<'info, Rent>,
+}
+
+#[account]
+pub struct Mint {
+    pub supply: u32,
+}
+
 
 #[account]
 pub struct MyAccount {

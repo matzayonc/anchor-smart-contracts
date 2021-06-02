@@ -2,6 +2,28 @@ import * as anchor from '@project-serum/anchor';
 import { assert } from 'chai'
 
 
+describe('tokens', () => {
+
+  anchor.setProvider(anchor.Provider.env());
+  const program = anchor.workspace.Manager;
+  const mintKeys = anchor.web3.Keypair.generate();
+
+
+
+  it(('Mint'), async () => {
+    await program.rpc.createMint({
+      accounts: {
+        mint: mintKeys.publicKey,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      },
+      instructions: [await program.account.myAccount.createInstruction(mintKeys)],
+      signers: [mintKeys],
+    });
+  });
+});
+
+
+
 describe('basic', () => {
 
   anchor.setProvider(anchor.Provider.env());
@@ -19,7 +41,6 @@ describe('basic', () => {
     });
   });
 
-
   it('Update', async () => {
     await program.rpc.update(new anchor.BN(44), {
       accounts: {
@@ -27,6 +48,12 @@ describe('basic', () => {
       }
     });
   });
+});
+
+describe('counter', () => {
+
+  anchor.setProvider(anchor.Provider.env());
+  const program = anchor.workspace.Manager;
 
   it(('CountInit'), async () => {
     await program.state.rpc.new({
@@ -41,7 +68,7 @@ describe('basic', () => {
 
   it(('Counter'), async () => {
 
-    let expectedCount = Math.floor(Math.random() * 10+2)
+    let expectedCount = Math.floor(Math.random() * 2) + 2
 
     for(let i = 0; i < expectedCount; i++){
       await program.state.rpc.increment({
