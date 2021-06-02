@@ -46,9 +46,9 @@ mod manager {
         Ok(())
     }
 
-    pub fn create_token(ctx: Context<CreateToken>) -> ProgramResult {
+    pub fn create_token(ctx: Context<CreateToken>, amount: u32) -> ProgramResult {
         let token = &mut ctx.accounts.token;
-        token.amount = 0;
+        token.amount = amount;
         token.authority = *ctx.accounts.authority.key;
         token.mint = *ctx.accounts.mint.to_account_info().key;
         Ok(())

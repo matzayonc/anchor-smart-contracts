@@ -31,7 +31,7 @@ describe('tokens', () => {
     );
 
     // Execute the transaction to create the associated token account.
-    await program.rpc.createToken({
+    await program.rpc.createToken(new anchor.BN(42), {
       accounts: {
         token: associatedToken,
         authority,
@@ -46,10 +46,8 @@ describe('tokens', () => {
       authority,
       mintKeys.publicKey
     );
-
+      assert.ok(account.amount == 42)
   });
-
-  
 });
 
 
