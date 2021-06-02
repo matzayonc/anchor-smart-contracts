@@ -45,6 +45,14 @@ mod manager {
         ctx.accounts.mint.supply = 0;
         Ok(())
     }
+
+    pub fn create_token(ctx: Context<CreateToken>) -> ProgramResult {
+        let token = &mut ctx.accounts.token;
+        token.amount = 0;
+        token.authority = *ctx.accounts.authority.key;
+        token.mint = *ctx.accounts.mint.to_account_info().key;
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -67,6 +75,18 @@ pub struct CreateMint<'info> {
     rent: Sysvar<'info, Rent>,
 }
 
+#[derive(Accounts)]
+pub struct CreateToken<'info> {
+    #[account(init, associated = authority, with = mint)]
+    token: ProgramAccount<'info, Token>,
+    #[account(mut, signer)]
+    authority: AccountInfo<'info>,
+    mint: ProgramAccount<'info, Mint>,
+    rent: Sysvar<'info, Rent>,
+    system_program: AccountInfo<'info>,
+}
+
+
 #[account]
 pub struct Mint {
     pub supply: u32,
@@ -76,6 +96,14 @@ pub struct Mint {
 #[account]
 pub struct MyAccount {
     pub tokens: u64,
+}
+
+
+#[associated]
+pub struct Token {
+    pub amount: u32,
+    pub authority: Pubkey,
+    pub mint: Pubkey,
 }
 
 
@@ -91,81 +119,3 @@ pub struct Auth<'info> {
     #[account(signer)]
     authority: AccountInfo<'info>,
 }
-
-
-/*
-mod counter {
-    use super::*;
-
-    pub fn initialize(ctx: Context<Initialize>,) -> ProgramResult {
-        let owner = &mut ctx.accounts.owner;
-        owner.amount = 0;
-        Ok(())
-    }
-
-    pub fn update(ctx: Context<Update>) -> ProgramResult {
-        let owner = &mut ctx.accounts.owner;
-        owner.amount += 1;
-        Ok(())
-    }
-}
-
-#[derive(Accounts)]
-pub struct Initialize<'info> {
-    #[account(init)]
-    pub owner: ProgramAccount<'info, Counter>,
-    pub rent: Sysvar<'info, Rent>,
-}
-
-#[derive(Accounts)]
-pub struct Update<'info> {
-    #[account(mut)]
-    pub owner: ProgramAccount<'info, Counter>,
-}
-
-#[account]
-pub struct Counter {
-    pub amount: u64,
-}
-
-
-
-
-*/
-/*
-use anchor_lang::prelude::*;
-
-#[program]
-pub mod basic_4 {
-    use super::*;
-
-    #[state]
-    pub struct Counter {
-        pub authority: Pubkey,
-        pub count: u64,
-    }
-
-    impl Counter {
-        pub fn new(ctx: Context<Auth>) -> Result<Self> {
-            Ok(Self {
-                authority: *ctx.accounts.authority.key,
-                count: 0,
-            })
-        }
-
-        pub fn increment(&mut self, ctx: Context<Auth>) -> Result<()> {
-            if &self.authority != ctx.accounts.authority.key {
-                return Err(ErrorCode::Unauthorized.into());
-            }
-            self.count += 1;
-            Ok(())
-        }
-    }
-}
-
-#[derive(Accounts)]
-pub struct Auth<'info> {
-    #[account(signer)]
-    authority: AccountInfo<'info>,
-}
-*/

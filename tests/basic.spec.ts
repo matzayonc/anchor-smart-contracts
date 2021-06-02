@@ -2,13 +2,14 @@ import * as anchor from '@project-serum/anchor';
 import { assert } from 'chai'
 
 
+
+anchor.setProvider(anchor.Provider.env());
+const program = anchor.workspace.Manager;
+
+
 describe('tokens', () => {
 
-  anchor.setProvider(anchor.Provider.env());
-  const program = anchor.workspace.Manager;
   const mintKeys = anchor.web3.Keypair.generate();
-
-
 
   it(('Mint'), async () => {
     await program.rpc.createMint({
@@ -20,14 +21,41 @@ describe('tokens', () => {
       signers: [mintKeys],
     });
   });
+
+  it(('Token'), async () => {
+        // Calculate the associated token address.
+    const authority = program.provider.wallet.publicKey;
+    const associatedToken = await program.account.token.associatedAddress(
+      authority,
+      mintKeys.publicKey
+    );
+
+    // Execute the transaction to create the associated token account.
+    await program.rpc.createToken({
+      accounts: {
+        token: associatedToken,
+        authority,
+        mint: mintKeys.publicKey,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      },
+    });
+
+    // Fetch the new associated account.
+    const account = await program.account.token.associated(
+      authority,
+      mintKeys.publicKey
+    );
+
+  });
+
+  
 });
 
 
 
 describe('basic', () => {
 
-  anchor.setProvider(anchor.Provider.env());
-  const program = anchor.workspace.Manager;
   const myAccount = anchor.web3.Keypair.generate();
 
   it('Initialization', async () => {
@@ -51,9 +79,6 @@ describe('basic', () => {
 });
 
 describe('counter', () => {
-
-  anchor.setProvider(anchor.Provider.env());
-  const program = anchor.workspace.Manager;
 
   it(('CountInit'), async () => {
     await program.state.rpc.new({
