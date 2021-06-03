@@ -5,16 +5,18 @@ mod manager {
     use super::*;
 
     #[state]
-    pub struct Counter {
+    pub struct MintState {
         pub authority: Pubkey,
         pub count: u64,
+        pub supply: u32,
     }
 
-    impl Counter {
-        pub fn new(ctx: Context<Auth>) -> Result<Self> {
+    impl MintState {
+        pub fn new(ctx: Context<CreateMint>) -> Result<Self> {
             Ok(Self {
                 authority: *ctx.accounts.authority.key,
                 count: 0,
+                supply: 1000
             })
         }
 
@@ -22,8 +24,16 @@ mod manager {
             if &self.authority != ctx.accounts.authority.key {
                 return Err(ErrorCode::Unauthorized.into());
             } 
-
+            if self.count >= 5 {
+                return Err(ErrorCode::MoreThanFiveUsers.into());
+            } 
+            
             self.count += 1;
+
+            if self.count == 5{
+                self.supply *= 2;
+            }
+
             Ok(())
         }
 
@@ -51,6 +61,7 @@ mod manager {
         token.amount = amount;
         token.authority = *ctx.accounts.authority.key;
         token.mint = *ctx.accounts.mint.to_account_info().key;
+        
         Ok(())
     }
 }
@@ -72,6 +83,8 @@ pub struct UpdateWallet<'info> {
 pub struct CreateMint<'info> {
     #[account(init)]
     mint: ProgramAccount<'info, Mint>,
+    #[account(signer)]
+    authority: AccountInfo<'info>,
     rent: Sysvar<'info, Rent>,
 }
 
@@ -107,10 +120,11 @@ pub struct Token {
 }
 
 
-
 #[error]
 pub enum ErrorCode {
-    #[msg("This is an error message clients will automatically display")]
+    #[msg("There can't be more than 5 users.")]
+    MoreThanFiveUsers,
+    #[msg("You are not authorized")]
     Unauthorized,
 }
 

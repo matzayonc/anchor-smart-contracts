@@ -5,32 +5,77 @@ import { assert } from 'chai'
 
 anchor.setProvider(anchor.Provider.env());
 const program = anchor.workspace.Manager;
+const mintKeys = anchor.web3.Keypair.generate();
+const authority = program.provider.wallet.publicKey;
+
+
+
+describe('counter', () => {
+
+  it(('CountInit'), async () => {
+    await program.state.rpc.new({
+      accounts: {
+        mint: mintKeys.publicKey,
+        authority: authority,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      },
+      instructions: [await program.account.myAccount.createInstruction(mintKeys)],
+      signers: [mintKeys],
+    });
+
+    const {count} = await program.state.fetch()
+    assert.ok(count.eq(new anchor.BN(0)))
+  })
+
+  it(('Counter'), async () => {
+
+    //let expectedCount = Math.floor(Math.random() * 2) + 2
+
+    /*for(let i = 0; i < expectedCount; i++){ //worked the stopped (This transaction has already been processed)
+      await program.state.rpc.increment({
+        accounts: {
+          authority: authority,
+        },
+      });
+    }*/
+    await program.state.rpc.increment({
+      accounts: {
+        authority: authority,
+      },
+    });
+    
+
+
+    const {count} = await program.state.fetch()
+    assert.ok(count.eq(new anchor.BN(1)))
+  })
+});
+
 
 
 describe('tokens', () => {
 
-  const mintKeys = anchor.web3.Keypair.generate();
 
+/*
   it(('Mint'), async () => {
     await program.rpc.createMint({
       accounts: {
         mint: mintKeys.publicKey,
+        authority: authority,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       },
       instructions: [await program.account.myAccount.createInstruction(mintKeys)],
       signers: [mintKeys],
     });
   });
+*/
 
   it(('Token'), async () => {
-        // Calculate the associated token address.
-    const authority = program.provider.wallet.publicKey;
     const associatedToken = await program.account.token.associatedAddress(
       authority,
       mintKeys.publicKey
     );
 
-    // Execute the transaction to create the associated token account.
     await program.rpc.createToken(new anchor.BN(42), {
       accounts: {
         token: associatedToken,
@@ -41,13 +86,27 @@ describe('tokens', () => {
       },
     });
 
-    // Fetch the new associated account.
     const account = await program.account.token.associated(
       authority,
       mintKeys.publicKey
     );
-      assert.ok(account.amount == 42)
+    assert.ok(account.amount == 42)
   });
+
+
+  /*
+  it(('Withdraw'), async () => {
+    await program.rpc.withdrawToken(new anchor.BN(44), {
+      accounts: {
+        token: await program.account.token.associated(
+          authority,
+          mintKeys.publicKey
+        ),
+      }
+    });
+
+  });*/
+
 });
 
 
@@ -74,34 +133,4 @@ describe('basic', () => {
       }
     });
   });
-});
-
-describe('counter', () => {
-
-  it(('CountInit'), async () => {
-    await program.state.rpc.new({
-      accounts: {
-        authority: anchor.Provider.env().wallet.publicKey,
-      },
-    });
-
-    const {count} = await program.state.fetch()
-    assert.ok(count.eq(new anchor.BN(0)))
-  })
-
-  it(('Counter'), async () => {
-
-    let expectedCount = Math.floor(Math.random() * 2) + 2
-
-    for(let i = 0; i < expectedCount; i++){
-      await program.state.rpc.increment({
-        accounts: {
-          authority: anchor.Provider.env().wallet.publicKey,
-        },
-      });
-    }
-
-    const {count} = await program.state.fetch()
-    assert.ok(count.eq(new anchor.BN(expectedCount)))
-  })
 });
