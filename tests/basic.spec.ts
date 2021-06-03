@@ -1,18 +1,17 @@
-import * as anchor from '@project-serum/anchor';
-import { assert } from 'chai'
+import * as anchor from '@project-serum/anchor'
+import { assert, expect } from 'chai'
 
 
 
-anchor.setProvider(anchor.Provider.env());
-const program = anchor.workspace.Manager;
-const mintKeys = anchor.web3.Keypair.generate();
-const authority = program.provider.wallet.publicKey;
+anchor.setProvider(anchor.Provider.env())
+const program = anchor.workspace.Manager as Program
+const mintKeys = anchor.web3.Keypair.generate()
+const authority = program.provider.wallet.publicKey
+let fifthUserKeys = anchor.web3.Keypair.generate()
 
+describe('Mint', () => {
 
-
-describe('counter', () => {
-
-  it(('CountInit'), async () => {
+  it(('init'), async () => {
     await program.state.rpc.new({
       accounts: {
         mint: mintKeys.publicKey,
@@ -21,116 +20,71 @@ describe('counter', () => {
       },
       instructions: [await program.account.myAccount.createInstruction(mintKeys)],
       signers: [mintKeys],
-    });
+    })
 
-    const {count} = await program.state.fetch()
+    const {count} = (await program.state.fetch()) as anchor.BN
     assert.ok(count.eq(new anchor.BN(0)))
   })
+})
 
-  it(('Counter'), async () => {
 
-    //let expectedCount = Math.floor(Math.random() * 2) + 2
+describe('Users', () => {
 
-    /*for(let i = 0; i < expectedCount; i++){ //worked the stopped (This transaction has already been processed)
-      await program.state.rpc.increment({
-        accounts: {
-          authority: authority,
-        },
-      });
-    }*/
-    await program.state.rpc.increment({
+  async function userFactory(){
+    const userKeys = anchor.web3.Keypair.generate()
+
+    await program.state.rpc.initUser(userKeys.publicKey, {
       accounts: {
-        authority: authority,
-      },
-    });
-    
-
-
-    const {count} = await program.state.fetch()
-    assert.ok(count.eq(new anchor.BN(1)))
-  })
-});
-
-
-
-describe('tokens', () => {
-
-
-/*
-  it(('Mint'), async () => {
-    await program.rpc.createMint({
-      accounts: {
-        mint: mintKeys.publicKey,
+        user: userKeys.publicKey,
         authority: authority,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       },
-      instructions: [await program.account.myAccount.createInstruction(mintKeys)],
-      signers: [mintKeys],
-    });
-  });
-*/
+      instructions: [await program.account.user.createInstruction(userKeys)],
+      signers: [userKeys],
+    })
+    return userKeys
+  }
 
-  it(('Token'), async () => {
+  it('creation', async () => {
+    for(let i = 0 i < 5 i++)
+    fifthUserKeys = await userFactory()
+  })
+
+  it('limit', async () => {
+    try {
+      expect(await userFactory()).to.throw() //FIXME: errors print to console
+    } catch (err: unknown) {
+      const {msg} = err as {msg: string}
+      assert.ok(msg == "There can't be more than 5 users.")
+    }
+    
+  })
+
+})
+
+describe('Tokens', () => {
+
+  it(('creation'), async () => {
     const associatedToken = await program.account.token.associatedAddress(
       authority,
-      mintKeys.publicKey
-    );
+      fifthUserKeys.publicKey
+    )
 
-    await program.rpc.createToken(new anchor.BN(42), {
+    await program.state.rpc.createToken(new anchor.BN(42), {
       accounts: {
         token: associatedToken,
         authority,
-        mint: mintKeys.publicKey,
+        user: fifthUserKeys.publicKey,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
         systemProgram: anchor.web3.SystemProgram.programId,
       },
-    });
+    })
 
-    const account = await program.account.token.associated(
+    const { amount } = await program.account.token.associated(
       authority,
-      mintKeys.publicKey
-    );
-    assert.ok(account.amount == 42)
-  });
+      fifthUserKeys.publicKey
+    ) as {amount: number}
 
-
-  /*
-  it(('Withdraw'), async () => {
-    await program.rpc.withdrawToken(new anchor.BN(44), {
-      accounts: {
-        token: await program.account.token.associated(
-          authority,
-          mintKeys.publicKey
-        ),
-      }
-    });
-
-  });*/
-
-});
-
-
-
-describe('basic', () => {
-
-  const myAccount = anchor.web3.Keypair.generate();
-
-  it('Initialization', async () => {
-    await program.rpc.initialize(new anchor.BN(42), {
-      accounts: {
-        user: myAccount.publicKey,
-        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      },
-      signers: [myAccount],
-      instructions: [await program.account.myAccount.createInstruction(myAccount)],
-    });
-  });
-
-  it('Update', async () => {
-    await program.rpc.update(new anchor.BN(44), {
-      accounts: {
-        user: myAccount.publicKey
-      }
-    });
-  });
-});
+    assert.ok(amount == 210)
+  })
+})

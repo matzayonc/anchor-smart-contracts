@@ -20,10 +20,10 @@ mod manager {
             })
         }
 
-        pub fn increment(&mut self, ctx: Context<Auth>) -> Result<()> {
-            if &self.authority != ctx.accounts.authority.key {
-                return Err(ErrorCode::Unauthorized.into());
-            } 
+
+        pub fn init_user(&mut self, ctx: Context<CreateUser>, auth: Pubkey) -> ProgramResult{
+            let user = &mut ctx.accounts.user;
+            user.authority = auth;
             if self.count >= 5 {
                 return Err(ErrorCode::MoreThanFiveUsers.into());
             } 
@@ -31,53 +31,23 @@ mod manager {
             self.count += 1;
 
             if self.count == 5{
-                self.supply *= 2;
+                self.supply += 1000;
             }
 
             Ok(())
         }
 
-    }
-
-    pub fn initialize(ctx: Context<InitializeWallet>, data: u64) -> ProgramResult {
-        let user = &mut ctx.accounts.user;
-        user.tokens = data;
-        Ok(())
-    }
-
-    pub fn update(ctx: Context<UpdateWallet>, data: u64) -> ProgramResult {
-        let user = &mut ctx.accounts.user;
-        user.tokens = data;
-        Ok(())
-    }
-
-    pub fn create_mint(ctx: Context<CreateMint>) -> ProgramResult {
-        ctx.accounts.mint.supply = 0;
-        Ok(())
-    }
-
-    pub fn create_token(ctx: Context<CreateToken>, amount: u32) -> ProgramResult {
-        let token = &mut ctx.accounts.token;
-        token.amount = amount;
-        token.authority = *ctx.accounts.authority.key;
-        token.mint = *ctx.accounts.mint.to_account_info().key;
-        
-        Ok(())
+        pub fn create_token(&mut self, ctx: Context<CreateToken>, amount: u32) -> ProgramResult {
+            let token = &mut ctx.accounts.token;
+            token.amount = amount * 10000 / self.supply; //four decimal places
+            token.authority = *ctx.accounts.authority.key;
+            token.user = *ctx.accounts.user.to_account_info().key;
+            
+            Ok(())
+        }
     }
 }
 
-#[derive(Accounts)]
-pub struct InitializeWallet<'info> {
-    #[account(init)]
-    pub user: ProgramAccount<'info, MyAccount>,
-    pub rent: Sysvar<'info, Rent>,
-}
-
-#[derive(Accounts)]
-pub struct UpdateWallet<'info> {
-    #[account(mut)]
-    pub user: ProgramAccount<'info, MyAccount>,
-}
 
 #[derive(Accounts)]
 pub struct CreateMint<'info> {
@@ -90,13 +60,29 @@ pub struct CreateMint<'info> {
 
 #[derive(Accounts)]
 pub struct CreateToken<'info> {
-    #[account(init, associated = authority, with = mint)]
+    #[account(init, associated = authority, with = user)]
     token: ProgramAccount<'info, Token>,
     #[account(mut, signer)]
     authority: AccountInfo<'info>,
-    mint: ProgramAccount<'info, Mint>,
+    user: ProgramAccount<'info, User>,
     rent: Sysvar<'info, Rent>,
     system_program: AccountInfo<'info>,
+}
+
+
+#[derive(Accounts)]
+pub struct CreateUser<'info> {
+    #[account(init)]
+    user: ProgramAccount<'info, User>,
+    #[account(signer)]
+    authority: AccountInfo<'info>,
+    rent: Sysvar<'info, Rent>,
+}
+
+
+#[account]
+pub struct User{
+    authority: Pubkey,
 }
 
 
@@ -116,7 +102,7 @@ pub struct MyAccount {
 pub struct Token {
     pub amount: u32,
     pub authority: Pubkey,
-    pub mint: Pubkey,
+    pub user: Pubkey,
 }
 
 
@@ -126,10 +112,4 @@ pub enum ErrorCode {
     MoreThanFiveUsers,
     #[msg("You are not authorized")]
     Unauthorized,
-}
-
-#[derive(Accounts)]
-pub struct Auth<'info> {
-    #[account(signer)]
-    authority: AccountInfo<'info>,
 }
