@@ -4,7 +4,8 @@ import {
   initializeMint,
   mintTokensToStaking,
   getAmountInStaking,
-
+  mintTokensTo,
+  getAmountIn,
 
   mainProgram,
   generateUser,
@@ -12,25 +13,44 @@ import {
   generateToken,
   getTokenAmount,
   getTokenWithdrawable,
-  recalculateToken
+  recalculateToken,
+  someToken
 } from './utils'
 
 import {
   parseNumber,
 } from './otherUtils'
+import { Account } from '@solana/web3.js'
+import { mintTo } from '@project-serum/serum/lib/token-instructions'
 
-let fourthUsersKeys: anchor.web3.Keypair
+//let fourthUsersKeys: anchor.web3.Keypair
 
-before(async () => {
-  await initializeMint()
-})
 
-describe('IDK', async () => {
+describe('Mint', async () => {
+  it('initialize', async () => {
+    await initializeMint()
+  })
+
   it('mint to staking account', async () => {
     await mintTokensToStaking(10e8) // 100 with 6 decimal places
     const amount = await getAmountInStaking()
     assert.ok(amount.eq(parseNumber(100 * 10e6)))
   })
+
+  it('mint to account', async () => {
+    const owner = new Account()
+    
+    const ownersTokens = await someToken.createAccount(owner.publicKey)
+    assert.ok((await getAmountIn(ownersTokens)).eq(parseNumber(0)))
+
+    await mintTokensTo(ownersTokens, 42)
+    console.log((await getAmountIn(ownersTokens)))
+    assert.ok((await getAmountIn(ownersTokens)).eq(parseNumber(42)))
+
+    await mintTokensTo(ownersTokens, 2)
+    assert.ok((await getAmountIn(ownersTokens)).eq(parseNumber(44)))
+  })
+
 })
 
 /*

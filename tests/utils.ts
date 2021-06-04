@@ -19,7 +19,7 @@ const wallet = provider.wallet.payer as Account //FIXME: I feel like thats bad
 
 
 let mintAuthority: PublicKey
-let someToken: Token
+export let someToken: Token
 let staking: PublicKey
 
 const SEED = Buffer.from('Synthetify')
@@ -41,21 +41,23 @@ export async function initializeMint(){
   staking = await someToken.createAccount(mintAuthority)
 }
 
+export async function mintTokensTo(whom: PublicKey, amount: number): Promise<void>{
+  await someToken.mintTo(whom, wallet, [], parseNumber(amount))
+}
+
+export async function getAmountIn(whose: PublicKey): Promise<u64>{
+  const {amount} = await someToken.getAccountInfo(whose)
+  return amount
+}
+
 export async function mintTokensToStaking(amount: number): Promise<void>{
-  await someToken.mintTo(staking, wallet, [], parseNumber(amount))
+  await mintTokensTo(staking, amount)
 }
 
 export async function getAmountInStaking(): Promise<u64>{
   const {amount} = await someToken.getAccountInfo(staking)
   return amount
 }
-
-
-
-
-
-
-
 
 export async function generateUser() {
   const userKeys = anchor.web3.Keypair.generate()
