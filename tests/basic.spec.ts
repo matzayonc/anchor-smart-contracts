@@ -6,6 +6,7 @@ import {
   getAmountInStaking,
   mintTokensTo,
   getAmountIn,
+  initializeState,
 
   mainProgram,
   generateUser,
@@ -39,19 +40,28 @@ describe('Mint', async () => {
 
   it('mint to account', async () => {
     const owner = new Account()
-    
     const ownersTokens = await someToken.createAccount(owner.publicKey)
+
     assert.ok((await getAmountIn(ownersTokens)).eq(parseNumber(0)))
-
     await mintTokensTo(ownersTokens, 42)
-    console.log((await getAmountIn(ownersTokens)))
     assert.ok((await getAmountIn(ownersTokens)).eq(parseNumber(42)))
-
     await mintTokensTo(ownersTokens, 2)
     assert.ok((await getAmountIn(ownersTokens)).eq(parseNumber(44)))
   })
 
 })
+
+
+describe('State', async () => {
+  it('initialize', async () => {
+    await initializeState()
+
+    console.log(await mainProgram.state.fetch())
+  })
+})
+
+
+
 
 /*
 describe('Mint', () => {

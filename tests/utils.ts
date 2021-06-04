@@ -17,7 +17,6 @@ const provider = anchor.Provider.local()
 const connection = provider.connection
 const wallet = provider.wallet.payer as Account //FIXME: I feel like thats bad
 
-
 let mintAuthority: PublicKey
 export let someToken: Token
 let staking: PublicKey
@@ -39,6 +38,16 @@ export async function initializeMint(){
   })
 
   staking = await someToken.createAccount(mintAuthority)
+}
+
+export async function initializeState(){
+  await mainProgram.state.rpc.new({
+    accounts: {
+      staking,
+      authority: mintAuthority,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY
+    }
+  })
 }
 
 export async function mintTokensTo(whom: PublicKey, amount: number): Promise<void>{
@@ -90,7 +99,6 @@ export async function generateToken(value: number, usersKey: PublicKey) {
 
 export async function getTokenAmount(user: PublicKey): Promise<number> {
   const { amount } = (await mainProgram.account.token.associated(authority, user)) as { amount: number }
-
   return amount
 }
 

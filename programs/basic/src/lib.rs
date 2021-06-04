@@ -6,18 +6,16 @@ mod manager {
     use super::*;
 
     #[state]
-    pub struct MintState {
-        pub authority: Pubkey,
-        pub count: u64,
-        pub supply: u32,
+    pub struct InternalState {
+        pub count: u32,
+        pub staking: Pubkey,
     }
 
-    impl MintState {
-        pub fn new(ctx: Context<CreateMint>) -> Result<Self> {
+    impl InternalState {
+        pub fn new(ctx: Context<InitState>) -> Result<Self> {
             Ok(Self {
-                authority: *ctx.accounts.authority.key,
                 count: 0,
-                supply: 2000
+                staking: *ctx.accounts.staking.to_account_info().key
             })
         }
 
@@ -30,8 +28,9 @@ mod manager {
             
             self.count += 1;
 
+
             if self.count == 5{
-                self.supply += 1000;
+                //self.supply += 1000;
             }
 
             Ok(())
@@ -39,7 +38,7 @@ mod manager {
 
         pub fn create_token(&mut self, ctx: Context<CreateToken>, amount: u32) -> ProgramResult {
             let token = &mut ctx.accounts.token;
-            token.amount = amount * 10000 / self.supply; //four decimal places
+            token.amount = amount * 10000 ;// self.supply; //four decimal places
             token.withdrawable = amount;
             token.authority = *ctx.accounts.authority.key;
             token.user = *ctx.accounts.user.to_account_info().key;
@@ -50,7 +49,7 @@ mod manager {
         pub fn calculate(&mut self, ctx: Context<CalcToken>) -> ProgramResult {
             let token = &mut ctx.accounts.token;
 
-            token.withdrawable = token.amount * self.supply / 10000;
+            token.withdrawable = token.amount ;//* self.supply / 10000;
             Ok(())
         }
     }
@@ -58,11 +57,8 @@ mod manager {
 
 
 #[derive(Accounts)]
-pub struct CreateMint<'info> {
-    #[account(init)]
-    mint: ProgramAccount<'info, Mint>,
-    #[account(signer)]
-    authority: AccountInfo<'info>,
+pub struct InitState<'info> {
+    staking: CpiAccount<'info, TokenAccount>,
     rent: Sysvar<'info, Rent>,
 }
 
