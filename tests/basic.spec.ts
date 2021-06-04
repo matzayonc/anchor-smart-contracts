@@ -1,22 +1,31 @@
 import * as anchor from '@project-serum/anchor'
 import { assert, expect } from 'chai'
 import {
-  program,
+  initializeMint,
+
+
+  mainProgram,
   generateUser,
   initMint,
   generateToken,
   getTokenAmount,
   getTokenWithdrawable,
   recalculateToken
-} from './manager'
+} from './utils'
 
 let fourthUsersKeys: anchor.web3.Keypair
 
+before(async () => {
+  await initializeMint()
+})
+
+
+/*
 describe('Mint', () => {
   it('init', async () => {
     await initMint()
 
-    const { count } = (await program.state.fetch()) as anchor.BN
+    const { count } = (await mainProgram.state.fetch()) as anchor.BN
     assert.ok(count.eq(new anchor.BN(0)))
   })
 })
@@ -60,3 +69,4 @@ describe('Users', () => {
     }
   })
 })
+*/
