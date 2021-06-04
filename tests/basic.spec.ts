@@ -7,29 +7,27 @@ import {
   generateToken,
   getTokenAmount,
   getTokenWithdrawable,
-  recalculateToken,
+  recalculateToken
 } from './manager'
 
 let fourthUsersKeys: anchor.web3.Keypair
 
 describe('Mint', () => {
-  it(('init'), async () => {
+  it('init', async () => {
     await initMint()
 
-    const {count} = (await program.state.fetch()) as anchor.BN
+    const { count } = (await program.state.fetch()) as anchor.BN
     assert.ok(count.eq(new anchor.BN(0)))
   })
 })
 
 describe('Users', () => {
   it('creation', async () => {
-    for(let i = 0; i < 4; i++)
-      fourthUsersKeys = await generateUser()
+    for (let i = 0; i < 4; i++) fourthUsersKeys = await generateUser()
   })
 })
 
 describe('Token', () => {
-
   it('creation', async () => {
     await generateToken(42, fourthUsersKeys.publicKey)
 
@@ -45,7 +43,6 @@ describe('Token', () => {
   })
 
   it('change in value', async () => {
-
     await generateUser()
     await recalculateToken(fourthUsersKeys.publicKey)
     const withdrawable = await getTokenWithdrawable(fourthUsersKeys.publicKey)
@@ -54,12 +51,11 @@ describe('Token', () => {
 })
 
 describe('Users', () => {
-
   it('limit', async () => {
     try {
       expect(await generateUser()).to.throw() //FIXME: errors print to console
     } catch (err: unknown) {
-      const {msg} = err as {msg: string}
+      const { msg } = err as { msg: string }
       assert.ok(msg == "There can't be more than 5 users.")
     }
   })
