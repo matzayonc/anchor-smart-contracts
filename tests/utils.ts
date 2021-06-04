@@ -1,10 +1,11 @@
 import * as anchor from '@project-serum/anchor'
 import { Program } from '@project-serum/anchor'
 import { Account, PublicKey } from '@solana/web3.js'
-import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { Token, u64 } from '@solana/spl-token'
 
 import {
   createToken,
+  parseNumber,
 } from './otherUtils'
 
 
@@ -36,8 +37,18 @@ export async function initializeMint(){
     payer: wallet,
     mintAuthority: wallet.publicKey
   })
+
+  staking = await someToken.createAccount(mintAuthority)
 }
 
+export async function mintTokensToStaking(amount: number): Promise<void>{
+  await someToken.mintTo(staking, wallet, [], parseNumber(amount))
+}
+
+export async function getAmountInStaking(): Promise<u64>{
+  const {amount} = await someToken.getAccountInfo(staking)
+  return amount
+}
 
 
 

@@ -2,6 +2,8 @@ import * as anchor from '@project-serum/anchor'
 import { assert, expect } from 'chai'
 import {
   initializeMint,
+  mintTokensToStaking,
+  getAmountInStaking,
 
 
   mainProgram,
@@ -13,12 +15,23 @@ import {
   recalculateToken
 } from './utils'
 
+import {
+  parseNumber,
+} from './otherUtils'
+
 let fourthUsersKeys: anchor.web3.Keypair
 
 before(async () => {
   await initializeMint()
 })
 
+describe('IDK', async () => {
+  it('mint to staking account', async () => {
+    await mintTokensToStaking(10e8) // 100 with 6 decimal places
+    const amount = await getAmountInStaking()
+    assert.ok(amount.eq(parseNumber(100 * 10e6)))
+  })
+})
 
 /*
 describe('Mint', () => {

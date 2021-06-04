@@ -1,10 +1,14 @@
-import { Token } from '@solana/spl-token'
+import { Token, u64 } from '@solana/spl-token'
 import { TokenInstructions } from '@project-serum/serum'
 import { Account, Connection, PublicKey } from '@solana/web3.js'
 
 
 
 
+export function parseNumber(amount:number): u64 {
+    return new u64(amount.toString())
+  }
+  
 
 
 interface ICreateToken {
