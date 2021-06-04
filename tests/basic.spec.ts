@@ -21,14 +21,12 @@ describe('Mint', () => {
   })
 })
 
-
 describe('Users', () => {
   it('creation', async () => {
     for(let i = 0; i < 4; i++)
       fourthUsersKeys = await generateUser()
   })
 })
-
 
 describe('Token', () => {
 
@@ -54,7 +52,6 @@ describe('Token', () => {
     assert.ok(withdrawable == 63)
   })
 })
-
 
 describe('Users', () => {
 
