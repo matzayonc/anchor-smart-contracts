@@ -1,10 +1,10 @@
 import * as anchor from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
 
-
 export const program = anchor.workspace.Manager as anchor.Program
-export const authority = program.provider.wallet.publicKey
+const authority = program.provider.wallet.publicKey
 const mintKeys = anchor.web3.Keypair.generate()
+
 
 export async function generateUser(){
     const userKeys = anchor.web3.Keypair.generate()
@@ -40,6 +40,7 @@ export async function generateToken(value: number, usersKey: PublicKey){
   })
 }
 
+
 export async function getTokenAmount(user: PublicKey): Promise<number> {
 
   const { amount } = await program.account.token.associated(
@@ -49,6 +50,7 @@ export async function getTokenAmount(user: PublicKey): Promise<number> {
 
   return amount
 }
+
 
 export async function recalculateToken(user: PublicKey): Promise<void> {
   const associatedToken = await program.account.token.associatedAddress(
@@ -64,7 +66,9 @@ export async function recalculateToken(user: PublicKey): Promise<void> {
   })
 }
 
+
 export async function getTokenWithdrawable(user: PublicKey): Promise<number> {
+  await recalculateToken(user)
 
   const { withdrawable } = await program.account.token.associated(
     authority,

@@ -20,7 +20,6 @@ mod manager {
             })
         }
 
-
         pub fn init_user(&mut self, ctx: Context<CreateUser>, auth: Pubkey) -> ProgramResult{
             let user = &mut ctx.accounts.user;
             user.authority = auth;
@@ -77,7 +76,6 @@ pub struct CreateToken<'info> {
     system_program: AccountInfo<'info>,
 }
 
-
 #[derive(Accounts)]
 pub struct CreateUser<'info> {
     #[account(init)]
@@ -86,7 +84,6 @@ pub struct CreateUser<'info> {
     authority: AccountInfo<'info>,
     rent: Sysvar<'info, Rent>,
 }
-
 
 #[derive(Accounts)]
 pub struct CalcToken<'info> {
@@ -97,18 +94,15 @@ pub struct CalcToken<'info> {
 }
 
 
-
 #[account]
 pub struct User{
     authority: Pubkey,
 }
 
-
 #[account]
 pub struct Mint {
     pub supply: u32,
 }
-
 
 #[account]
 pub struct MyAccount {

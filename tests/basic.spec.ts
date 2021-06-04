@@ -2,19 +2,15 @@ import * as anchor from '@project-serum/anchor'
 import { assert, expect } from 'chai'
 import {
   program,
-  authority,
   generateUser,
   initMint,
   generateToken,
   getTokenAmount,
   getTokenWithdrawable,
   recalculateToken,
-
 } from './manager'
 
-
-let fourthUsersKeys = anchor.web3.Keypair.generate()
-
+let fourthUsersKeys: anchor.web3.Keypair
 
 describe('Mint', () => {
   it(('init'), async () => {
@@ -34,7 +30,7 @@ describe('Users', () => {
 })
 
 
-describe('Tokens', () => {
+describe('Token', () => {
 
   it('creation', async () => {
     await generateToken(42, fourthUsersKeys.publicKey)
@@ -43,14 +39,14 @@ describe('Tokens', () => {
     assert.ok(amount == 210)
   })
 
-  it('calc', async () => {
+  it('recalculation of value', async () => {
     await recalculateToken(fourthUsersKeys.publicKey)
 
     const withdrawable = await getTokenWithdrawable(fourthUsersKeys.publicKey)
     assert.ok(withdrawable == 42)
   })
 
-  it('change in price after adding user', async () => {
+  it('change in value', async () => {
 
     await generateUser()
     await recalculateToken(fourthUsersKeys.publicKey)
@@ -69,6 +65,5 @@ describe('Users', () => {
       const {msg} = err as {msg: string}
       assert.ok(msg == "There can't be more than 5 users.")
     }
-    
   })
 })
