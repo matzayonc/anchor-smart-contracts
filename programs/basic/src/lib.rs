@@ -16,7 +16,7 @@ mod manager {
             Ok(Self {
                 authority: *ctx.accounts.authority.key,
                 count: 0,
-                supply: 1000
+                supply: 2000
             })
         }
 
@@ -40,9 +40,17 @@ mod manager {
         pub fn create_token(&mut self, ctx: Context<CreateToken>, amount: u32) -> ProgramResult {
             let token = &mut ctx.accounts.token;
             token.amount = amount * 10000 / self.supply; //four decimal places
+            token.withdrawable = amount;
             token.authority = *ctx.accounts.authority.key;
             token.user = *ctx.accounts.user.to_account_info().key;
             
+            Ok(())
+        }
+
+        pub fn calculate(&mut self, ctx: Context<CalcToken>) -> ProgramResult {
+            let token = &mut ctx.accounts.token;
+
+            token.withdrawable = token.amount * self.supply / 10000;
             Ok(())
         }
     }
@@ -80,6 +88,16 @@ pub struct CreateUser<'info> {
 }
 
 
+#[derive(Accounts)]
+pub struct CalcToken<'info> {
+    #[account(mut)]
+    token: ProgramAccount<'info, Token>,
+    #[account(signer)]
+    authority: AccountInfo<'info>,
+}
+
+
+
 #[account]
 pub struct User{
     authority: Pubkey,
@@ -101,6 +119,7 @@ pub struct MyAccount {
 #[associated]
 pub struct Token {
     pub amount: u32,
+    pub withdrawable: u32,
     pub authority: Pubkey,
     pub user: Pubkey,
 }
