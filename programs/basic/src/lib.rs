@@ -1,6 +1,10 @@
 use anchor_lang::prelude::*;
 //use anchor_spl::token::{self, Burn, MintTo, TokenAccount, Transfer};
-use anchor_spl::token::{TokenAccount};
+use anchor_spl::token::{self, TokenAccount, Transfer};
+
+const SEED: &str = "Synthetify";
+
+
 
 #[program]
 mod manager {
@@ -11,16 +15,18 @@ mod manager {
         pub count: u32,
         pub staking: Pubkey,
         pub mint: Pubkey,
-        pub price: u64
+        pub price: u64,
+        pub nonce: u8
     }
 
     impl InternalState {
-        pub fn new(ctx: Context<InitState>) -> Result<Self> {
+        pub fn new(ctx: Context<InitState>, nonce: u8) -> Result<Self> {
             Ok(Self {
                 count: 0,
                 staking: *ctx.accounts.staking.to_account_info().key,
                 mint: *ctx.accounts.mint.key,
                 price: 2,
+                nonce: nonce
             })
         }
 
@@ -47,27 +53,83 @@ mod manager {
             Ok(())
         }
 
-        pub fn buy_shares(&mut self, ctx: Context<BuyShares>) -> ProgramResult {
+        /*
+        pub fn deposit(&mut self, ctx: Context<Deposit>) -> ProgramResult {
             let user = &mut ctx.accounts.user;
             user.shares = ctx.accounts.tokens.amount 
                 * 1000000
                 / ctx.accounts.staking.amount
                 / self.price;
-                
+
+            let seeds = &[SEED.as_bytes(), &[self.nonce]];
+            let signer = &[&seeds[..]];
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.tokens.to_account_info(),
+                to: ctx.accounts.staking.to_account_info(),
+                authority: ctx.accounts.auth.clone()
+            };
+
+            let cpi_program = ctx.accounts.token_program.clone();
+            let cpi_ctx = CpiContext::new(
+                cpi_program,
+                cpi_accounts
+            ).with_signer(signer);
+            //token::transfer(cpi_ctx, 1);
+
+            Ok(())
+        }*/
+
+        pub fn deposit(&mut self, ctx: Context<Deposit>) -> ProgramResult {
+            let user = &mut ctx.accounts.user;
+
+            user.shares = 1;
+
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.tokens.to_account_info(),
+                to: ctx.accounts.staking.to_account_info(),
+                authority: ctx.accounts.auth.clone()
+            };
+
+            let cpi_program = ctx.accounts.token_program.clone();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+            token::transfer(cpi_context, ctx.accounts.tokens.amount)?;
+
 
             Ok(())
         }
-
     }
 }
+
+
 #[derive(Accounts)]
-pub struct BuyShares<'info>{
+pub struct Deposit<'info>{
     #[account(mut)]
     user: ProgramAccount<'info, User>,
+    #[account(mut)]
     tokens: CpiAccount<'info, TokenAccount>,
-    staking: CpiAccount<'info, TokenAccount>
+    #[account(mut)]
+    staking: CpiAccount<'info, TokenAccount>,
+    #[account(signer)]
+    auth: AccountInfo<'info>,
+    token_program: AccountInfo<'info>
 }
 
+/*
+#[derive(Accounts)]
+pub struct Deposit<'info>{
+    #[account(mut)]
+    user: ProgramAccount<'info, User>,
+    #[account(mut)]
+    tokens: CpiAccount<'info, TokenAccount>,
+    #[account(mut)]
+    staking: CpiAccount<'info, TokenAccount>,
+    #[account(signer)]
+    auth: AccountInfo<'info>,
+    //#[account("token_program.key == &token::ID")]
+    token_program: AccountInfo<'info>,
+    rent: Sysvar<'info, Rent>,
+}
+*/
 #[derive(Accounts)]
 pub struct InitState<'info> {
     staking: CpiAccount<'info, TokenAccount>,

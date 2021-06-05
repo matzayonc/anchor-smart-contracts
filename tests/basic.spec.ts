@@ -9,10 +9,10 @@ import {
   initializeState,
   createUser,
   buyShares,
+  amountOfSharesOf,
 
   mainProgram,
   someToken,
-  amountOfSharedOf
 } from './utils'
 
 import {
@@ -64,6 +64,8 @@ describe('Users', async () => {
 
   it('creation', async () => {
     await createUser(user)
+    const shares = await amountOfSharesOf(user)
+    assert.ok(shares.eq(parseNumber(0)))  
   })
 
   it('creating tokens', async () => {
@@ -74,9 +76,10 @@ describe('Users', async () => {
 
   it('buy shares', async () => {
     await buyShares(user, tokens)
-    const shares = await amountOfSharedOf(user)
-    console.log(shares)
-    assert.ok(shares.eq(parseNumber(2)))
+    const shares = await amountOfSharesOf(user)
+
+    assert.ok((await getAmountIn(tokens)).eq(parseNumber(0)))
+    assert.ok(shares.eq(parseNumber(1)))
   })
 })
 

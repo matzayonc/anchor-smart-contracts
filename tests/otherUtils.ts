@@ -3,6 +3,7 @@ import { TokenInstructions } from '@project-serum/serum'
 import { Account, Connection, PublicKey } from '@solana/web3.js'
 
 
+export const TOKEN_PROGRAM = TokenInstructions.TOKEN_PROGRAM_ID
 
 
 export function parseNumber(amount:number): u64 {
