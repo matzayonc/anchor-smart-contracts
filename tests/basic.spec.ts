@@ -82,12 +82,12 @@ describe('Users', async () => {
   it('create more users', async () => {
     for(let i = 0; i < 4; i++)
       await createUser()
+
+      console.log(await amountOfSharesOf(user))
+      mintTokensToStaking(5 * 10e3)
   })
 
-  it('share value increase', async () => {
-    console.log(await amountOfSharesOf(user))
-  })
-
+/*
   it('limit', async () => {
     try {
       expect(await createUser()).to.throw() //FIXME: errors print to console
@@ -96,7 +96,7 @@ describe('Users', async () => {
       assert.ok(msg == "There can't be more than 5 users.")
     }
   })
-
+*/
 
 
 

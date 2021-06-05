@@ -36,10 +36,6 @@ mod manager {
                 return Err(ErrorCode::MoreThanFiveUsers.into());
             } 
             self.count += 1;
-
-            if self.count == 5{
-                //TODO: should mint to staking
-            }
             user.shares = 0;
 
             Ok(())
@@ -84,8 +80,6 @@ pub struct Deposit<'info>{
     #[account(executable, "token_program.key == &token::ID")]
     token_program: AccountInfo<'info>
 }
-
-
 
 
 #[derive(Accounts)]
