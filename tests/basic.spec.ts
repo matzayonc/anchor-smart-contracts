@@ -8,15 +8,17 @@ import {
   getAmountIn,
   initializeState,
   createUser,
+  buyShares,
 
   mainProgram,
-  someToken
+  someToken,
+  amountOfSharedOf
 } from './utils'
 
 import {
   parseNumber,
 } from './otherUtils'
-import { Account } from '@solana/web3.js'
+import { Account, Keypair, PublicKey } from '@solana/web3.js'
 import { mintTo } from '@project-serum/serum/lib/token-instructions'
 import { createSuper } from 'typescript'
 
@@ -29,9 +31,9 @@ describe('Mint', async () => {
   })
 
   it('mint to staking account', async () => {
-    await mintTokensToStaking(10e8) // 100 with 6 decimal places
+    await mintTokensToStaking(10e6) // 100 with 6 decimal places
     const amount = await getAmountInStaking()
-    assert.ok(amount.eq(parseNumber(100 * 10e6)))
+    assert.ok(amount.eq(parseNumber(1 * 10e6)))
   })
 
   it('mint to account', async () => {
@@ -57,10 +59,36 @@ describe('State', async () => {
 })
 
 describe('Users', async () => {
+  const user = anchor.web3.Keypair.generate()
+  let tokens: PublicKey
+
   it('creation', async () => {
-    await createUser()
+    await createUser(user)
+  })
+
+  it('creating tokens', async () => {
+    tokens = await someToken.createAccount(user.publicKey)
+    await mintTokensTo(tokens, 42)
+    assert.ok((await getAmountIn(tokens)).eq(parseNumber(42)))
+  })
+
+  it('buy shares', async () => {
+    await buyShares(user, tokens)
+    const shares = await amountOfSharedOf(user)
+    console.log(shares)
+    assert.ok(shares.eq(parseNumber(2)))
   })
 })
+
+
+
+
+
+
+
+
+
+
 
 /*
 describe('Mint', () => {

@@ -1,12 +1,13 @@
 import * as anchor from '@project-serum/anchor'
 import { Program } from '@project-serum/anchor'
-import { Account, PublicKey } from '@solana/web3.js'
+import { Account, PublicKey, Keypair } from '@solana/web3.js'
 import { Token, u64 } from '@solana/spl-token'
 
 import {
   createToken,
   parseNumber,
 } from './otherUtils'
+import { Key } from 'readline'
 
 
 export const mainProgram = anchor.workspace.Manager as Program
@@ -22,6 +23,31 @@ export let someToken: Token
 let staking: PublicKey
 
 const SEED = Buffer.from('Synthetify')
+
+
+
+export async function buyShares(user: Keypair, tokens: PublicKey): Promise<void>{
+  await mainProgram.state.rpc.buyShares({
+    accounts: {
+      user: user.publicKey,
+      tokens,
+      staking,
+    }
+  })
+
+}
+
+
+export async function amountOfSharedOf(user: Keypair): Promise<u64>{
+  const {shares} = await mainProgram.account.user.fetch(user.publicKey) as {shares: u64}
+  return shares
+}
+
+
+
+
+
+
 
 
 export async function initializeMint(){
@@ -52,8 +78,7 @@ export async function initializeState(){
 }
 
 
-export async function createUser(){
-  const userKeys = anchor.web3.Keypair.generate()
+export async function createUser(userKeys: Keypair): Promise<Keypair>{
 
   await mainProgram.state.rpc.initUser({
     accounts: {

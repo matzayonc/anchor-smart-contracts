@@ -10,7 +10,8 @@ mod manager {
     pub struct InternalState {
         pub count: u32,
         pub staking: Pubkey,
-        pub mint: Pubkey
+        pub mint: Pubkey,
+        pub price: u64
     }
 
     impl InternalState {
@@ -18,8 +19,8 @@ mod manager {
             Ok(Self {
                 count: 0,
                 staking: *ctx.accounts.staking.to_account_info().key,
-                mint: *ctx.accounts.mint.key
-
+                mint: *ctx.accounts.mint.key,
+                price: 2,
             })
         }
 
@@ -31,7 +32,7 @@ mod manager {
             self.count += 1;
 
             if self.count == 5{
-                //should mint to staking
+                //TODO: should mint to staking
             }
             user.shares = 0;
 
@@ -45,9 +46,27 @@ mod manager {
             //token.withdrawable = token.amount ;//* self.supply / 10000;
             Ok(())
         }
+
+        pub fn buy_shares(&mut self, ctx: Context<BuyShares>) -> ProgramResult {
+            let user = &mut ctx.accounts.user;
+            user.shares = ctx.accounts.tokens.amount 
+                * 1000000
+                / ctx.accounts.staking.amount
+                / self.price;
+                
+
+            Ok(())
+        }
+
     }
 }
-
+#[derive(Accounts)]
+pub struct BuyShares<'info>{
+    #[account(mut)]
+    user: ProgramAccount<'info, User>,
+    tokens: CpiAccount<'info, TokenAccount>,
+    staking: CpiAccount<'info, TokenAccount>
+}
 
 #[derive(Accounts)]
 pub struct InitState<'info> {
@@ -79,12 +98,7 @@ pub struct CalcToken<'info> {
 
 #[account]
 pub struct User{
-    pub shares: u32,
-}
-
-#[account]
-pub struct Mint {
-    pub supply: u32,
+    pub shares: u64,
 }
 
 #[error]
