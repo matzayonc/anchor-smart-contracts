@@ -62,9 +62,31 @@ mod manager {
             Ok(())
         }
 
+        pub fn withdraw(&mut self, ctx: Context<Withdraw>) -> ProgramResult {
+            let user = &mut ctx.accounts.user;
+
+
+            let amount = user.shares
+                * ctx.accounts.staking.amount
+                / self.total_shares;
+
+            user.shares = 0;
+
+            Ok(())
+        }
+
     }
 }
 
+#[derive(Accounts)]
+pub struct Withdraw<'info> {
+    #[account(mut)]
+    user: ProgramAccount<'info, User>,
+    #[account(mut)]
+    tokens: CpiAccount<'info, TokenAccount>,
+    #[account(mut)]
+    staking: CpiAccount<'info, TokenAccount>,
+}
 
 
 #[derive(Accounts)]

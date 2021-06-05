@@ -25,6 +25,17 @@ let staking: PublicKey
 const SEED = Buffer.from('Synthetify')
 
 
+export async function withdraw(user: Keypair, tokens: PublicKey): Promise<void>{
+  await mainProgram.state.rpc.withdraw({
+    accounts: {
+      user: user.publicKey, 
+      tokens,
+      staking
+    }
+  })
+}
+
+
 export async function deposit(user: Keypair, tokens: PublicKey): Promise<void>{
   await mainProgram.state.rpc.deposit({
     accounts: {
@@ -38,15 +49,10 @@ export async function deposit(user: Keypair, tokens: PublicKey): Promise<void>{
   })
 }
 
-
 export async function amountOfSharesOf(user: Keypair): Promise<u64>{
   const {shares} = await mainProgram.account.user.fetch(user.publicKey) as {shares: u64}
   return shares
 }
-
-
-
-
 
 export async function initializeMint(){
   const [_programAuthority, _nonce] = await anchor.web3.PublicKey.findProgramAddress(

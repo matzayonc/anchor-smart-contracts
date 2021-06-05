@@ -13,6 +13,7 @@ import {
 
   mainProgram,
   someToken,
+  withdraw,
 } from './utils'
 
 import {
@@ -83,7 +84,6 @@ describe('Users', async () => {
     for(let i = 0; i < 4; i++)
       await createUser()
 
-      console.log(await amountOfSharesOf(user))
       mintTokensToStaking(5 * 10e3)
   })
 
@@ -99,14 +99,11 @@ describe('Users', async () => {
 */
 
 
-
-  /*
   it('sell shares', async () => {
     await withdraw(user, tokens)
     const shares = await amountOfSharesOf(user)
 
     assert.ok(shares.eq(parseNumber(0)))
-    assert.ok((await getAmountIn(tokens)).eq(parseNumber(42)))
+    assert.ok((await getAmountIn(tokens)).eq(parseNumber(0)))
   })
-  */
 })
