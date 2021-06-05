@@ -65,6 +65,7 @@ mod manager {
 
             Ok(())
         }
+
     }
 }
 
@@ -74,14 +75,16 @@ mod manager {
 pub struct Deposit<'info>{
     #[account(mut)]
     user: ProgramAccount<'info, User>,
-    #[account(mut)]
+    #[account(signer)]
+    auth: AccountInfo<'info>,
+    #[account(mut, "tokens.owner == *auth.key")]
     tokens: CpiAccount<'info, TokenAccount>,
     #[account(mut)]
     staking: CpiAccount<'info, TokenAccount>,
-    #[account(signer)]
-    auth: AccountInfo<'info>,
+    #[account(executable, "token_program.key == &token::ID")]
     token_program: AccountInfo<'info>
 }
+
 
 
 

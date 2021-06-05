@@ -25,7 +25,6 @@ let staking: PublicKey
 const SEED = Buffer.from('Synthetify')
 
 
-
 export async function deposit(user: Keypair, tokens: PublicKey): Promise<void>{
   await mainProgram.state.rpc.deposit({
     accounts: {
@@ -37,7 +36,6 @@ export async function deposit(user: Keypair, tokens: PublicKey): Promise<void>{
     },
     signers: [user]
   })
-
 }
 
 
@@ -45,9 +43,6 @@ export async function amountOfSharesOf(user: Keypair): Promise<u64>{
   const {shares} = await mainProgram.account.user.fetch(user.publicKey) as {shares: u64}
   return shares
 }
-
-
-
 
 
 
@@ -82,20 +77,22 @@ export async function initializeState(){
 }
 
 
-export async function createUser(userKeys: Keypair): Promise<Keypair>{
+export async function createUser(userKeys?: Keypair): Promise<Keypair>{
+
+  let keys = userKeys ?? Keypair.generate()
 
   await mainProgram.state.rpc.initUser({
     accounts: {
-      user: userKeys.publicKey,
+      user: keys.publicKey,
       mint: someToken.publicKey,
       mintAuth: programAuthority,
       staking,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY
     },
-    instructions: [await mainProgram.account.user.createInstruction(userKeys)],
-    signers: [userKeys]
+    instructions: [await mainProgram.account.user.createInstruction(keys)],
+    signers: [keys]
   })
-  return userKeys
+  return keys
 }
 
 
@@ -116,75 +113,3 @@ export async function getAmountInStaking(): Promise<u64>{
   const {amount} = await someToken.getAccountInfo(staking)
   return amount
 }
-
-/*
-
-export async function generateUser() {
-  const userKeys = anchor.web3.Keypair.generate()
-  const tokens = someToken.createAccount(userKeys.publicKey)
-
-
-  await mainProgram.state.rpc.initUser(userKeys.publicKey, {
-    accounts: {
-      user: userKeys.publicKey,
-      authority: authority,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY
-    },
-    instructions: [await mainProgram.account.user.createInstruction(userKeys)],
-    signers: [userKeys]
-  })
-  return userKeys
-}
-
-export async function generateToken(value: number, usersKey: PublicKey) {
-  const associatedToken = await mainProgram.account.token.associatedAddress(authority, usersKey)
-
-  await mainProgram.state.rpc.createToken(new anchor.BN(42), {
-    accounts: {
-      token: associatedToken,
-      authority,
-      user: usersKey,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      systemProgram: anchor.web3.SystemProgram.programId
-    }
-  })
-}
-
-export async function getTokenAmount(user: PublicKey): Promise<number> {
-  const { amount } = (await mainProgram.account.token.associated(authority, user)) as { amount: number }
-  return amount
-}
-
-export async function recalculateToken(user: PublicKey): Promise<void> {
-  const associatedToken = await mainProgram.account.token.associatedAddress(authority, user)
-
-  await mainProgram.state.rpc.calculate({
-    accounts: {
-      token: associatedToken,
-      authority
-    }
-  })
-}
-
-export async function getTokenWithdrawable(user: PublicKey): Promise<number> {
-  await recalculateToken(user)
-
-  const { withdrawable } = (await mainProgram.account.token.associated(authority, user)) as {
-    withdrawable: number
-  }
-
-  return withdrawable
-}
-
-export async function initMint() {
-  await mainProgram.state.rpc.new({
-    accounts: {
-      mint: mintKeys.publicKey,
-      authority: authority,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY
-    },
-    instructions: [await mainProgram.account.myAccount.createInstruction(mintKeys)],
-    signers: [mintKeys]
-  })
-}
-*/
