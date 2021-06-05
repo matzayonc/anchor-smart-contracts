@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Burn, MintTo, TokenAccount, Transfer};
+//use anchor_spl::token::{self, Burn, MintTo, TokenAccount, Transfer};
+use anchor_spl::token::{TokenAccount};
 
 #[program]
 mod manager {
@@ -9,47 +10,39 @@ mod manager {
     pub struct InternalState {
         pub count: u32,
         pub staking: Pubkey,
+        pub mint: Pubkey
     }
 
     impl InternalState {
         pub fn new(ctx: Context<InitState>) -> Result<Self> {
             Ok(Self {
                 count: 0,
-                staking: *ctx.accounts.staking.to_account_info().key
+                staking: *ctx.accounts.staking.to_account_info().key,
+                mint: *ctx.accounts.mint.key
+
             })
         }
 
-        pub fn init_user(&mut self, ctx: Context<CreateUser>, auth: Pubkey) -> ProgramResult{
+        pub fn init_user(&mut self, ctx: Context<CreateUser>) -> ProgramResult{
             let user = &mut ctx.accounts.user;
-            user.authority = auth;
             if self.count >= 5 {
                 return Err(ErrorCode::MoreThanFiveUsers.into());
             } 
-            
             self.count += 1;
 
-
             if self.count == 5{
-                //self.supply += 1000;
+                //should mint to staking
             }
+            user.shares = 0;
 
             Ok(())
         }
 
-        pub fn create_token(&mut self, ctx: Context<CreateToken>, amount: u32) -> ProgramResult {
-            let token = &mut ctx.accounts.token;
-            token.amount = amount * 10000 ;// self.supply; //four decimal places
-            token.withdrawable = amount;
-            token.authority = *ctx.accounts.authority.key;
-            token.user = *ctx.accounts.user.to_account_info().key;
-            
-            Ok(())
-        }
 
-        pub fn calculate(&mut self, ctx: Context<CalcToken>) -> ProgramResult {
-            let token = &mut ctx.accounts.token;
+        pub fn calculate(&mut self, _ctx: Context<CalcToken>) -> ProgramResult {
+            //let token = &mut ctx.accounts.token;
 
-            token.withdrawable = token.amount ;//* self.supply / 10000;
+            //token.withdrawable = token.amount ;//* self.supply / 10000;
             Ok(())
         }
     }
@@ -59,33 +52,26 @@ mod manager {
 #[derive(Accounts)]
 pub struct InitState<'info> {
     staking: CpiAccount<'info, TokenAccount>,
+    mint: AccountInfo<'info>,
     rent: Sysvar<'info, Rent>,
-}
-
-#[derive(Accounts)]
-pub struct CreateToken<'info> {
-    #[account(init, associated = authority, with = user)]
-    token: ProgramAccount<'info, Token>,
-    #[account(mut, signer)]
-    authority: AccountInfo<'info>,
-    user: ProgramAccount<'info, User>,
-    rent: Sysvar<'info, Rent>,
-    system_program: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
 pub struct CreateUser<'info> {
     #[account(init)]
     user: ProgramAccount<'info, User>,
-    #[account(signer)]
-    authority: AccountInfo<'info>,
+    #[account(mut)]
+    mint: AccountInfo<'info>,
+    mint_auth: AccountInfo<'info>,
+    #[account(mut)]
+    staking: CpiAccount<'info, TokenAccount>,
     rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
 pub struct CalcToken<'info> {
     #[account(mut)]
-    token: ProgramAccount<'info, Token>,
+    token: CpiAccount<'info, TokenAccount>,
     #[account(signer)]
     authority: AccountInfo<'info>,
 }
@@ -93,28 +79,13 @@ pub struct CalcToken<'info> {
 
 #[account]
 pub struct User{
-    authority: Pubkey,
+    pub shares: u32,
 }
 
 #[account]
 pub struct Mint {
     pub supply: u32,
 }
-
-#[account]
-pub struct MyAccount {
-    pub tokens: u64,
-}
-
-
-#[associated]
-pub struct Token {
-    pub amount: u32,
-    pub withdrawable: u32,
-    pub authority: Pubkey,
-    pub user: Pubkey,
-}
-
 
 #[error]
 pub enum ErrorCode {

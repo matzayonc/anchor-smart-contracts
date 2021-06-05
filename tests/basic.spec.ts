@@ -7,14 +7,9 @@ import {
   mintTokensTo,
   getAmountIn,
   initializeState,
+  createUser,
 
   mainProgram,
-  generateUser,
-  initMint,
-  generateToken,
-  getTokenAmount,
-  getTokenWithdrawable,
-  recalculateToken,
   someToken
 } from './utils'
 
@@ -23,6 +18,7 @@ import {
 } from './otherUtils'
 import { Account } from '@solana/web3.js'
 import { mintTo } from '@project-serum/serum/lib/token-instructions'
+import { createSuper } from 'typescript'
 
 //let fourthUsersKeys: anchor.web3.Keypair
 
@@ -55,13 +51,16 @@ describe('Mint', async () => {
 describe('State', async () => {
   it('initialize', async () => {
     await initializeState()
-
-    console.log(await mainProgram.state.fetch())
+    const { count } = await mainProgram.state.fetch() as {count: number}
+    assert.ok(count == 0)
   })
 })
 
-
-
+describe('Users', async () => {
+  it('creation', async () => {
+    await createUser()
+  })
+})
 
 /*
 describe('Mint', () => {

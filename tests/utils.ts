@@ -10,12 +10,12 @@ import {
 
 
 export const mainProgram = anchor.workspace.Manager as Program
-const authority = mainProgram.provider.wallet.publicKey
+const authority = anchor.web3.Keypair.generate().publicKey
 const mintKeys = anchor.web3.Keypair.generate()
 
 const provider = anchor.Provider.local()
 const connection = provider.connection
-const wallet = provider.wallet.payer as Account //FIXME: I feel like thats bad
+const wallet = (provider.wallet as unknown as {payer: Account}).payer
 
 let mintAuthority: PublicKey
 export let someToken: Token
@@ -45,10 +45,30 @@ export async function initializeState(){
     accounts: {
       staking,
       authority: mintAuthority,
+      mint: someToken.publicKey,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY
     }
   })
 }
+
+
+export async function createUser(){
+  const userKeys = anchor.web3.Keypair.generate()
+
+  await mainProgram.state.rpc.initUser({
+    accounts: {
+      user: userKeys.publicKey,
+      mint: someToken.publicKey,
+      mintAuth: mintAuthority,
+      staking,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY
+    },
+    instructions: [await mainProgram.account.user.createInstruction(userKeys)],
+    signers: [userKeys]
+  })
+  return userKeys
+}
+
 
 export async function mintTokensTo(whom: PublicKey, amount: number): Promise<void>{
   await someToken.mintTo(whom, wallet, [], parseNumber(amount))
@@ -68,8 +88,12 @@ export async function getAmountInStaking(): Promise<u64>{
   return amount
 }
 
+/*
+
 export async function generateUser() {
   const userKeys = anchor.web3.Keypair.generate()
+  const tokens = someToken.createAccount(userKeys.publicKey)
+
 
   await mainProgram.state.rpc.initUser(userKeys.publicKey, {
     accounts: {
@@ -134,3 +158,4 @@ export async function initMint() {
     signers: [mintKeys]
   })
 }
+*/
