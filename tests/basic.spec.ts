@@ -104,6 +104,6 @@ describe('Users', async () => {
     const shares = await amountOfSharesOf(user)
 
     assert.ok(shares.eq(parseNumber(0)))
-    assert.ok((await getAmountIn(tokens)).eq(parseNumber(0)))
+    assert.ok((await getAmountIn(tokens)).eq(parseNumber(63)))
   })
 })

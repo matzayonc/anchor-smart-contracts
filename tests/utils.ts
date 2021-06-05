@@ -8,7 +8,6 @@ import {
   parseNumber,
   TOKEN_PROGRAM,
 } from './otherUtils'
-import { Key } from 'readline'
 
 
 export const mainProgram = anchor.workspace.Manager as Program
@@ -18,6 +17,7 @@ const provider = anchor.Provider.local()
 const connection = provider.connection
 const wallet = (provider.wallet as unknown as {payer: Account}).payer
 
+export const mintAuthority = Keypair.generate()
 let programAuthority: PublicKey
 export let someToken: Token
 let staking: PublicKey
@@ -30,8 +30,11 @@ export async function withdraw(user: Keypair, tokens: PublicKey): Promise<void>{
     accounts: {
       user: user.publicKey, 
       tokens,
-      staking
-    }
+      staking,
+      auth: mintAuthority.publicKey,
+      tokenProgram: TOKEN_PROGRAM,
+    },
+    signers: [mintAuthority]
   })
 }
 
@@ -68,15 +71,14 @@ export async function initializeMint(){
     mintAuthority: wallet.publicKey
   })
 
-  staking = await someToken.createAccount(programAuthority)
+  staking = await someToken.createAccount(mintAuthority.publicKey)
 }
 
 export async function initializeState(){
   await mainProgram.state.rpc.new(nonce, {
     accounts: {
       staking,
-      authority: programAuthority,
-      mint: someToken.publicKey,
+      authority: mintAuthority.publicKey,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY
     }
   })
@@ -91,7 +93,7 @@ export async function createUser(userKeys?: Keypair): Promise<Keypair>{
     accounts: {
       user: keys.publicKey,
       mint: someToken.publicKey,
-      mintAuth: programAuthority,
+      mintAuth: mintAuthority.publicKey,
       staking,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY
     },

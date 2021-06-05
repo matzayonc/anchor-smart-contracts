@@ -14,7 +14,6 @@ mod manager {
     pub struct InternalState {
         pub count: u32,
         pub staking: Pubkey,
-        pub mint: Pubkey,
         pub nonce: u8,
         pub total_shares: u64,
     }
@@ -24,7 +23,6 @@ mod manager {
             Ok(Self {
                 count: 0,
                 staking: *ctx.accounts.staking.to_account_info().key,
-                mint: *ctx.accounts.mint.key,
                 nonce: nonce,
                 total_shares: 1000000
             })
@@ -72,6 +70,17 @@ mod manager {
 
             user.shares = 0;
 
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.staking.to_account_info(),
+                to: ctx.accounts.tokens.to_account_info(),
+                authority: ctx.accounts.auth.clone()
+            };
+
+            let cpi_program = ctx.accounts.token_program.clone();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+            token::transfer(cpi_context, amount)?;
+
+
             Ok(())
         }
 
@@ -86,6 +95,10 @@ pub struct Withdraw<'info> {
     tokens: CpiAccount<'info, TokenAccount>,
     #[account(mut)]
     staking: CpiAccount<'info, TokenAccount>,
+    #[account(signer)]
+    auth: AccountInfo<'info>,
+    #[account(executable, "token_program.key == &token::ID")]
+    token_program: AccountInfo<'info>
 }
 
 
@@ -107,7 +120,6 @@ pub struct Deposit<'info>{
 #[derive(Accounts)]
 pub struct InitState<'info> {
     staking: CpiAccount<'info, TokenAccount>,
-    mint: AccountInfo<'info>,
     rent: Sysvar<'info, Rent>,
 }
 
