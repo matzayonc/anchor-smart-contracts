@@ -15,8 +15,8 @@ mod manager {
         pub count: u32,
         pub staking: Pubkey,
         pub mint: Pubkey,
-        pub price: u64,
-        pub nonce: u8
+        pub nonce: u8,
+        pub total_shares: u64,
     }
 
     impl InternalState {
@@ -25,8 +25,8 @@ mod manager {
                 count: 0,
                 staking: *ctx.accounts.staking.to_account_info().key,
                 mint: *ctx.accounts.mint.key,
-                price: 2,
-                nonce: nonce
+                nonce: nonce,
+                total_shares: 1000000
             })
         }
 
@@ -45,44 +45,12 @@ mod manager {
             Ok(())
         }
 
-
-        pub fn calculate(&mut self, _ctx: Context<CalcToken>) -> ProgramResult {
-            //let token = &mut ctx.accounts.token;
-
-            //token.withdrawable = token.amount ;//* self.supply / 10000;
-            Ok(())
-        }
-
-        /*
-        pub fn deposit(&mut self, ctx: Context<Deposit>) -> ProgramResult {
-            let user = &mut ctx.accounts.user;
-            user.shares = ctx.accounts.tokens.amount 
-                * 1000000
-                / ctx.accounts.staking.amount
-                / self.price;
-
-            let seeds = &[SEED.as_bytes(), &[self.nonce]];
-            let signer = &[&seeds[..]];
-            let cpi_accounts = Transfer {
-                from: ctx.accounts.tokens.to_account_info(),
-                to: ctx.accounts.staking.to_account_info(),
-                authority: ctx.accounts.auth.clone()
-            };
-
-            let cpi_program = ctx.accounts.token_program.clone();
-            let cpi_ctx = CpiContext::new(
-                cpi_program,
-                cpi_accounts
-            ).with_signer(signer);
-            //token::transfer(cpi_ctx, 1);
-
-            Ok(())
-        }*/
-
         pub fn deposit(&mut self, ctx: Context<Deposit>) -> ProgramResult {
             let user = &mut ctx.accounts.user;
 
-            user.shares = 1;
+            user.shares = ctx.accounts.tokens.amount
+                * self.total_shares
+                / ctx.accounts.staking.amount;
 
             let cpi_accounts = Transfer {
                 from: ctx.accounts.tokens.to_account_info(),
@@ -101,6 +69,7 @@ mod manager {
 }
 
 
+
 #[derive(Accounts)]
 pub struct Deposit<'info>{
     #[account(mut)]
@@ -114,22 +83,8 @@ pub struct Deposit<'info>{
     token_program: AccountInfo<'info>
 }
 
-/*
-#[derive(Accounts)]
-pub struct Deposit<'info>{
-    #[account(mut)]
-    user: ProgramAccount<'info, User>,
-    #[account(mut)]
-    tokens: CpiAccount<'info, TokenAccount>,
-    #[account(mut)]
-    staking: CpiAccount<'info, TokenAccount>,
-    #[account(signer)]
-    auth: AccountInfo<'info>,
-    //#[account("token_program.key == &token::ID")]
-    token_program: AccountInfo<'info>,
-    rent: Sysvar<'info, Rent>,
-}
-*/
+
+
 #[derive(Accounts)]
 pub struct InitState<'info> {
     staking: CpiAccount<'info, TokenAccount>,

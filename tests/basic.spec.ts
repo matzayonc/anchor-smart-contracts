@@ -8,7 +8,7 @@ import {
   getAmountIn,
   initializeState,
   createUser,
-  buyShares,
+  deposit,
   amountOfSharesOf,
 
   mainProgram,
@@ -31,9 +31,9 @@ describe('Mint', async () => {
   })
 
   it('mint to staking account', async () => {
-    await mintTokensToStaking(10e6) // 100 with 6 decimal places
+    await mintTokensToStaking(10e4) // 1 with 4 decimal places
     const amount = await getAmountInStaking()
-    assert.ok(amount.eq(parseNumber(1 * 10e6)))
+    assert.ok(amount.eq(parseNumber(1 * 10e4)))
   })
 
   it('mint to account', async () => {
@@ -75,11 +75,11 @@ describe('Users', async () => {
   })
 
   it('buy shares', async () => {
-    await buyShares(user, tokens)
+    await deposit(user, tokens)
     const shares = await amountOfSharesOf(user)
 
     assert.ok((await getAmountIn(tokens)).eq(parseNumber(0)))
-    assert.ok(shares.eq(parseNumber(1)))
+    assert.ok(shares.eq(parseNumber(420)))
   })
 })
 

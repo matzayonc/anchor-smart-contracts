@@ -26,11 +26,7 @@ const SEED = Buffer.from('Synthetify')
 
 
 
-export async function buyShares(user: Keypair, tokens: PublicKey): Promise<void>{
-
-
-
-
+export async function deposit(user: Keypair, tokens: PublicKey): Promise<void>{
   await mainProgram.state.rpc.deposit({
     accounts: {
       user: user.publicKey,
