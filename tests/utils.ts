@@ -17,7 +17,6 @@ const provider = anchor.Provider.local()
 const connection = provider.connection
 const wallet = (provider.wallet as unknown as {payer: Account}).payer
 
-export const mintAuthority = Keypair.generate()
 let programAuthority: PublicKey
 export let someToken: Token
 let staking: PublicKey
@@ -31,10 +30,9 @@ export async function withdraw(user: Keypair, tokens: PublicKey): Promise<void>{
       user: user.publicKey, 
       tokens,
       staking,
-      auth: mintAuthority.publicKey,
+      auth: programAuthority,
       tokenProgram: TOKEN_PROGRAM,
     },
-    signers: [mintAuthority]
   })
 }
 
@@ -65,20 +63,20 @@ export async function initializeMint(){
   programAuthority = _programAuthority
   nonce = _nonce
 
-  someToken = await createToken({
+  someToken = await createToken(
     connection,
-    payer: wallet,
-    mintAuthority: wallet.publicKey
-  })
+    wallet,
+    wallet.publicKey
+  )
 
-  staking = await someToken.createAccount(mintAuthority.publicKey)
+  staking = await someToken.createAccount(programAuthority)
 }
 
 export async function initializeState(){
   await mainProgram.state.rpc.new(nonce, {
     accounts: {
       staking,
-      authority: mintAuthority.publicKey,
+      authority: programAuthority,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY
     }
   })
@@ -93,8 +91,10 @@ export async function createUser(userKeys?: Keypair): Promise<Keypair>{
     accounts: {
       user: keys.publicKey,
       mint: someToken.publicKey,
-      mintAuth: mintAuthority.publicKey,
+      auth: programAuthority,
       staking,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY
     },
     instructions: [await mainProgram.account.user.createInstruction(keys)],

@@ -11,25 +11,17 @@ export function parseNumber(amount:number): u64 {
   }
   
 
-
-interface ICreateToken {
-    connection: Connection
-    payer: Account
-    mintAuthority: PublicKey
-    decimals?: number
-  }
-  export const createToken = async ({
-    connection,
-    payer,
-    mintAuthority,
-    decimals = 6
-  }: ICreateToken) => {
+  export const createToken = async (
+    connection: Connection,
+    payer: Account,
+    mintAuthority: PublicKey,
+  ) => {
     const token = await Token.createMint(
       connection,
       payer,
       mintAuthority,
       null,
-      decimals,
+      6,
       TokenInstructions.TOKEN_PROGRAM_ID
     )
     return token

@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
-//use anchor_spl::token::{self, Burn, MintTo, TokenAccount, Transfer};
-use anchor_spl::token::{self, TokenAccount, Transfer};
+use anchor_spl::token::{self, MintTo, TokenAccount, Transfer};
 
 const SEED: &str = "Synthetify";
 
@@ -33,8 +32,29 @@ mod manager {
             if self.count >= 5 {
                 return Err(ErrorCode::MoreThanFiveUsers.into());
             } 
+
+            
             self.count += 1;
             user.shares = 0;
+
+
+            if self.count == 5{
+                let seeds = &[SEED.as_bytes(), &[self.nonce], ];
+                let signer = &[&seeds[..]];
+                let cpi_accounts = MintTo {
+                    mint: ctx.accounts.mint.to_account_info(),
+                    to: ctx.accounts.staking.to_account_info(),
+                    authority: ctx.accounts.auth.clone()
+                };
+                let cpi_program = ctx.accounts.token_program.clone();
+                let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+                //token::mint_to(cpi_ctx, 50000)?;
+            };
+
+
+
+
+
 
             Ok(())
         }
@@ -63,22 +83,23 @@ mod manager {
         pub fn withdraw(&mut self, ctx: Context<Withdraw>) -> ProgramResult {
             let user = &mut ctx.accounts.user;
 
-
             let amount = user.shares
                 * ctx.accounts.staking.amount
                 / self.total_shares;
 
             user.shares = 0;
 
+            let seeds = &[SEED.as_bytes(), &[self.nonce], ];
+            let signer = &[&seeds[..]];
+
             let cpi_accounts = Transfer {
                 from: ctx.accounts.staking.to_account_info(),
                 to: ctx.accounts.tokens.to_account_info(),
-                authority: ctx.accounts.auth.clone()
+                authority: ctx.accounts.auth.to_account_info()
             };
-
-            let cpi_program = ctx.accounts.token_program.clone();
-            let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-            token::transfer(cpi_context, amount)?;
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(signer);
+            token::transfer(cpi_ctx, amount)?;
 
 
             Ok(())
@@ -95,9 +116,8 @@ pub struct Withdraw<'info> {
     tokens: CpiAccount<'info, TokenAccount>,
     #[account(mut)]
     staking: CpiAccount<'info, TokenAccount>,
-    #[account(signer)]
     auth: AccountInfo<'info>,
-    #[account(executable, "token_program.key == &token::ID")]
+    //#[account(executable, "token_program.key == &token::ID")]
     token_program: AccountInfo<'info>
 }
 
@@ -129,9 +149,11 @@ pub struct CreateUser<'info> {
     user: ProgramAccount<'info, User>,
     #[account(mut)]
     mint: AccountInfo<'info>,
-    mint_auth: AccountInfo<'info>,
+    auth: AccountInfo<'info>,
     #[account(mut)]
     staking: CpiAccount<'info, TokenAccount>,
+    token_program: AccountInfo<'info>,
+    system_program: AccountInfo<'info>,
     rent: Sysvar<'info, Rent>,
 }
 

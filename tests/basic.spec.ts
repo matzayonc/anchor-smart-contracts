@@ -102,7 +102,6 @@ describe('Users', async () => {
   it('sell shares', async () => {
     await withdraw(user, tokens)
     const shares = await amountOfSharesOf(user)
-
     assert.ok(shares.eq(parseNumber(0)))
     assert.ok((await getAmountIn(tokens)).eq(parseNumber(63)))
   })
