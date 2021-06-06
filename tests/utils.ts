@@ -12,7 +12,6 @@ let nonce: number
 const provider = anchor.Provider.local()
 const connection = provider.connection
 const wallet = (provider.wallet as unknown as { payer: Keypair }).payer
-const tokenMinter = Keypair.generate()
 
 let programAuthority: PublicKey
 export let someToken: Token
@@ -45,7 +44,7 @@ export async function initializeMint() {
   programAuthority = _programAuthority
   nonce = _nonce
 
-  someToken = await createToken(connection, wallet, tokenMinter.publicKey)
+  someToken = await createToken(connection, wallet, wallet.publicKey)
 
   staking = await someToken.createAccount(programAuthority)
 }
@@ -92,7 +91,7 @@ export async function amountOfSharesOf(user: Keypair): Promise<u64> {
 }
 
 export async function mintTokensTo(whom: PublicKey, amount: number): Promise<void> {
-  await someToken.mintTo(whom, tokenMinter, [], parseNumber(amount))
+  await someToken.mintTo(whom, wallet, [], parseNumber(amount))
 }
 
 export async function getAmountIn(whose: PublicKey): Promise<u64> {
