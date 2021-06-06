@@ -67,7 +67,8 @@ export async function withdraw(user: Keypair, tokens: PublicKey): Promise<void> 
       staking,
       auth: programAuthority,
       tokenProgram: TOKEN_PROGRAM
-    }
+    },
+    signers: [user]
   })
 }
 

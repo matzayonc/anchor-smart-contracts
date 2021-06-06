@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, MintTo, TokenAccount, Transfer};
+use anchor_spl::token::{self, Mint, MintTo, TokenAccount, Transfer};
 
 const SEED: &str = "Synthetify";
 
@@ -11,16 +11,14 @@ mod manager {
     #[state]
     pub struct InternalState {
         pub count: u32,
-        pub staking: Pubkey,
         pub nonce: u8,
         pub total_shares: u64,
     }
 
     impl InternalState {
-        pub fn new(ctx: Context<InitState>, nonce: u8) -> Result<Self> {
+        pub fn new(_ctx: Context<InitState>, nonce: u8) -> Result<Self> {
             Ok(Self {
                 count: 0,
-                staking: *ctx.accounts.staking.to_account_info().key,
                 nonce: nonce,
                 total_shares: 1000000
             })
@@ -105,7 +103,7 @@ mod manager {
 
 #[derive(Accounts)]
 pub struct Withdraw<'info> {
-    #[account(mut)]
+    #[account(mut, signer)]
     user: ProgramAccount<'info, User>,
     #[account(mut)]
     tokens: CpiAccount<'info, TokenAccount>,
@@ -140,24 +138,15 @@ pub struct InitState<'info> {
 
 #[derive(Accounts)]
 pub struct CreateUser<'info> {
-    #[account(init)]
+    #[account(init, signer)]
     user: ProgramAccount<'info, User>,
     #[account(mut)]
-    mint: AccountInfo<'info>,
+    mint: CpiAccount<'info, Mint>,
     auth: AccountInfo<'info>,
     #[account(mut)]
     staking: CpiAccount<'info, TokenAccount>,
     token_program: AccountInfo<'info>,
-    system_program: AccountInfo<'info>,
     rent: Sysvar<'info, Rent>,
-}
-
-#[derive(Accounts)]
-pub struct CalcToken<'info> {
-    #[account(mut)]
-    token: CpiAccount<'info, TokenAccount>,
-    #[account(signer)]
-    authority: AccountInfo<'info>,
 }
 
 
