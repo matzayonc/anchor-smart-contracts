@@ -10,7 +10,6 @@ import {
   createUser,
   deposit,
   amountOfSharesOf,
-
   mainProgram,
   someToken,
   withdraw,
@@ -18,8 +17,6 @@ import {
 } from './utils'
 
 import { Keypair, PublicKey } from '@solana/web3.js'
-
-
 
 describe('Mint', async () => {
   it('initialize', async () => {
@@ -42,14 +39,12 @@ describe('Mint', async () => {
     await mintTokensTo(ownersTokens, 2)
     assert.ok((await getAmountIn(ownersTokens)).eq(parseNumber(44)))
   })
-
 })
-
 
 describe('State', async () => {
   it('initialize', async () => {
     await initializeState()
-    const { count } = await mainProgram.state.fetch() as {count: number}
+    const { count } = (await mainProgram.state.fetch()) as { count: number }
     assert.ok(count == 0)
   })
 })
@@ -61,7 +56,7 @@ describe('Users', async () => {
   it('creation', async () => {
     await createUser(user)
     const shares = await amountOfSharesOf(user)
-    assert.ok(shares.eq(parseNumber(0)))  
+    assert.ok(shares.eq(parseNumber(0)))
   })
 
   it('creating tokens', async () => {
@@ -79,18 +74,15 @@ describe('Users', async () => {
   })
 
   it('create more users', async () => {
-    for(let i = 0; i < 3; i++)
-      await createUser()
-
+    for (let i = 0; i < 3; i++) await createUser()
   })
 
   it('minting additional tokens', async () => {
     await createUser()
-
-    //mintTokensToStaking(5 * 10e3)
+    await mintTokensToStaking(5 * 10e3)
+    assert.ok((await getAmountInStaking()).eq(parseNumber(15 * 10e3 + 42)))
   })
 
-/*
   it('limit', async () => {
     try {
       expect(await createUser()).to.throw() //FIXME: errors print to console
@@ -99,13 +91,11 @@ describe('Users', async () => {
       assert.ok(msg == "There can't be more than 5 users.")
     }
   })
-*/
-
 
   it('sell shares', async () => {
     await withdraw(user, tokens)
     const shares = await amountOfSharesOf(user)
     assert.ok(shares.eq(parseNumber(0)))
-    assert.ok((await getAmountIn(tokens)).eq(parseNumber(42)))
+    assert.ok((await getAmountIn(tokens)).eq(parseNumber(63)))
   })
 })

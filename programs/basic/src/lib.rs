@@ -4,7 +4,6 @@ use anchor_spl::token::{self, MintTo, TokenAccount, Transfer};
 const SEED: &str = "Synthetify";
 
 
-
 #[program]
 mod manager {
     use super::*;
@@ -27,12 +26,12 @@ mod manager {
             })
         }
 
+
         pub fn init_user(&mut self, ctx: Context<CreateUser>) -> ProgramResult{
             let user = &mut ctx.accounts.user;
             if self.count >= 5 {
                 return Err(ErrorCode::MoreThanFiveUsers.into());
             } 
-
             
             self.count += 1;
             user.shares = 0;
@@ -51,13 +50,9 @@ mod manager {
                 //token::mint_to(cpi_ctx, 50000)?;
             };
 
-
-
-
-
-
             Ok(())
         }
+
 
         pub fn deposit(&mut self, ctx: Context<Deposit>) -> ProgramResult {
             let user = &mut ctx.accounts.user;
@@ -79,6 +74,7 @@ mod manager {
 
             Ok(())
         }
+
 
         pub fn withdraw(&mut self, ctx: Context<Withdraw>) -> ProgramResult {
             let user = &mut ctx.accounts.user;
@@ -104,7 +100,6 @@ mod manager {
 
             Ok(())
         }
-
     }
 }
 
@@ -117,7 +112,7 @@ pub struct Withdraw<'info> {
     #[account(mut)]
     staking: CpiAccount<'info, TokenAccount>,
     auth: AccountInfo<'info>,
-    //#[account(executable, "token_program.key == &token::ID")]
+    #[account(executable, "token_program.key == &token::ID")]
     token_program: AccountInfo<'info>
 }
 
