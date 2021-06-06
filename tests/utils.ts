@@ -1,21 +1,17 @@
 import * as anchor from '@project-serum/anchor'
 import { Program } from '@project-serum/anchor'
-import { Account, PublicKey, Keypair } from '@solana/web3.js'
+import { TokenInstructions } from '@project-serum/serum'
+import { PublicKey, Keypair, Connection } from '@solana/web3.js'
 import { Token, u64 } from '@solana/spl-token'
 
-import {
-  createToken,
-  parseNumber,
-  TOKEN_PROGRAM,
-} from './otherUtils'
 
-
+const TOKEN_PROGRAM = TokenInstructions.TOKEN_PROGRAM_ID
 export const mainProgram = anchor.workspace.Manager as Program
 let nonce: number
 
 const provider = anchor.Provider.local()
 const connection = provider.connection
-const wallet = (provider.wallet as unknown as {payer: Account}).payer
+const wallet = (provider.wallet as unknown as {payer: Keypair}).payer
 
 let programAuthority: PublicKey
 export let someToken: Token
@@ -120,4 +116,26 @@ export async function mintTokensToStaking(amount: number): Promise<void>{
 export async function getAmountInStaking(): Promise<u64>{
   const {amount} = await someToken.getAccountInfo(staking)
   return amount
+}
+
+
+export function parseNumber(amount:number): u64 {
+  return new u64(amount.toString())
+}
+
+
+async function createToken(
+connection: Connection,
+payer: Keypair,
+mintAuthority: PublicKey,
+) {
+const token = await Token.createMint(
+  connection,
+  payer,
+  mintAuthority,
+  null,
+  6,
+  TokenInstructions.TOKEN_PROGRAM_ID
+)
+return token
 }

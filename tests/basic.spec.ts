@@ -14,12 +14,10 @@ import {
   mainProgram,
   someToken,
   withdraw,
+  parseNumber
 } from './utils'
 
-import {
-  parseNumber,
-} from './otherUtils'
-import { Account, Keypair, PublicKey } from '@solana/web3.js'
+import { Keypair, PublicKey } from '@solana/web3.js'
 
 
 
@@ -35,7 +33,7 @@ describe('Mint', async () => {
   })
 
   it('mint to account', async () => {
-    const owner = new Account()
+    const owner = Keypair.generate()
     const ownersTokens = await someToken.createAccount(owner.publicKey)
 
     assert.ok((await getAmountIn(ownersTokens)).eq(parseNumber(0)))
@@ -81,10 +79,15 @@ describe('Users', async () => {
   })
 
   it('create more users', async () => {
-    for(let i = 0; i < 4; i++)
+    for(let i = 0; i < 3; i++)
       await createUser()
 
-      mintTokensToStaking(5 * 10e3)
+  })
+
+  it('minting additional tokens', async () => {
+    await createUser()
+
+    //mintTokensToStaking(5 * 10e3)
   })
 
 /*
@@ -103,6 +106,6 @@ describe('Users', async () => {
     await withdraw(user, tokens)
     const shares = await amountOfSharesOf(user)
     assert.ok(shares.eq(parseNumber(0)))
-    assert.ok((await getAmountIn(tokens)).eq(parseNumber(63)))
+    assert.ok((await getAmountIn(tokens)).eq(parseNumber(42)))
   })
 })
