@@ -44,7 +44,7 @@ export async function initializeMint() {
   programAuthority = _programAuthority
   nonce = _nonce
 
-  someToken = await createToken(connection, wallet, wallet.publicKey)
+  someToken = await createToken(connection, wallet, programAuthority)
 
   staking = await someToken.createAccount(programAuthority)
 }
@@ -91,7 +91,7 @@ export async function amountOfSharesOf(user: Keypair): Promise<u64> {
 }
 
 export async function mintTokensTo(whom: PublicKey, amount: number): Promise<void> {
-  await someToken.mintTo(whom, wallet, [], parseNumber(amount))
+  await someToken.mintTo(whom, programAuthority, [], parseNumber(amount))
 }
 
 export async function getAmountIn(whose: PublicKey): Promise<u64> {

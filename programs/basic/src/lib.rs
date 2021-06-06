@@ -45,7 +45,7 @@ mod manager {
                 };
                 let cpi_program = ctx.accounts.token_program.clone();
                 let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-                //token::mint_to(cpi_ctx, 50000)?;
+                token::mint_to(cpi_ctx, 50000)?;
             };
 
             Ok(())
@@ -138,7 +138,7 @@ pub struct InitState<'info> {
 
 #[derive(Accounts)]
 pub struct CreateUser<'info> {
-    #[account(init, signer)]
+    #[account(init)]
     user: ProgramAccount<'info, User>,
     #[account(mut)]
     mint: CpiAccount<'info, Mint>,
